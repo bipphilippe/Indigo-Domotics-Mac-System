@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<PluginConfig>
+	<!-- You can add a SupportURL element inside here if you want a context
+		 sensitive help link on the config UI - otherwise it will just link
+		 to the URL specified in the Info.plist. -->
+	<!-- <SupportURL></SupportURL> -->
+
+	<Field id="infoLabel" type="label">
+		<Label>Mac Os System plug-in
+Developed by Bernard Philippe (bip.philippe)</Label>
+	</Field>
+    <Field id="simpleSeparator1" type="separator"/>
+    <Field type="checkbox" id="showDebugInfo">
+        <Label>Enable debuging:</Label>
+        <Description>(not recommended)</Description>
+    </Field>
+	<Field type="checkbox" id="showShellLog">
+		<Label>Enable log raw data:</Label>
+		<Description>(use for testing only)</Description>
+	</Field>
+</PluginConfig>

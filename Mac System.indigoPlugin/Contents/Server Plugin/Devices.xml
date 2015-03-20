@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+<Devices>
+	<Device type="relay" id="bip.ms.volume">
+		<Name>Disk Volume</Name>
+		<ConfigUI>
+			<Field id="VolumeID" type="textfield">
+				<Label>Volume name:</Label>
+			</Field>
+            <Field type="checkbox" id="forceQuit">
+                <Label>Use forced unmount:</Label>
+                <Description>(can result in loss of data)</Description>
+            </Field>
+            <Field type="checkbox" id="keepAwaken">
+                <Label>Keep this disk awaken:</Label>
+                <Description>(avoid going to sleep)</Description>
+            </Field>
+		</ConfigUI>
+        <States>
+            <!-- By default relay type devices automatically inherit the
+             state: onOffState.
+             
+             The plugin can specify additional custom states and custom
+             actions (in Actions.xml) to modify custom states. As an example
+             here, we define a new custom state, backlightBrightness, which
+             is used to control the brightness of the backlit display of
+             the module.
+             -->
+            <State id="VolumeType">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Volume type</TriggerLabel>
+                <ControlPageLabel>Volume type</ControlPageLabel>
+            </State>
+            <State id="VolumeSize">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Volume size</TriggerLabel>
+                <ControlPageLabel>Volume size</ControlPageLabel>
+            </State>
+            <State id="VolumeDevice">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Volume device</TriggerLabel>
+                <ControlPageLabel>Volume device</ControlPageLabel>
+            </State>
+            <State id="VolumeDeviceReady">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Volume device ready</TriggerLabel>
+                <ControlPageLabel>Volume device ready</ControlPageLabel>
+            </State>
+            <State id="LastPing">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Last awake ping time</TriggerLabel>
+                <ControlPageLabel>Last awake ping time</ControlPageLabel>
+            </State>
+        </States>
+	</Device>
+    <Device type="relay" id="bip.ms.application">
+        <Name>Application</Name>
+        <ConfigUI>
+            <Field id="ApplicationID" type="textfield">
+                <Label>Application name:</Label>
+            </Field>
+            <Field type="checkbox" id="forceQuit">
+                <Label>Use forced quit:</Label>
+                <Description>(can result in loss of data)</Description>
+            </Field>
+        </ConfigUI>
+        <States>
+            <!-- By default relay type devices automatically inherit the
+             state: onOffState.
+             
+             The plugin can specify additional custom states and custom
+             actions (in Actions.xml) to modify custom states. As an example
+             here, we define a new custom state, backlightBrightness, which
+             is used to control the brightness of the backlit display of
+             the module.
+             -->
+            <State id="ProcessID">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Process ID</TriggerLabel>
+                <ControlPageLabel>Process ID</ControlPageLabel>
+            </State>
+        </States>
+     </Device>
+</Devices>
