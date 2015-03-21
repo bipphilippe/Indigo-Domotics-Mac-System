@@ -232,7 +232,7 @@ class Plugin(indigo.PluginBase):
 
 
                 # wait
-                self.sleep(2) # in seconds
+                self.sleep(10) # in seconds
         except self.StopThread:
             # do any cleanup here
             pass
