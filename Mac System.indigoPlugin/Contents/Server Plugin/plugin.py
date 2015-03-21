@@ -212,23 +212,23 @@ class Plugin(indigo.PluginBase):
                             self.volumeList[thevolume]['status']=False
                             self.debugLog(u"device %s information updated as no more in diskutil" % (self.volumeList[thevolume]['VolumeID']))
 
-                # update ping time if needed
-                if thetime > self.nextDiskPing:
-                    # test the disk pace
-                    p = subprocess.Popen("pmset -g | grep disksleep | sed -e s/[a-z]//g  | sed -e 's/ //g'", shell=True,stdout=subprocess.PIPE, close_fds=True)
-                    p.wait()
-                    try:
-                        self.paceDiskPing = int(p.stdout.read()) * 60
-                    except:
-                        self.paceDiskPing = 0
+                    # update ping time if needed
+                    if thetime > self.nextDiskPing:
+                        # test the disk pace
+                        p = subprocess.Popen("pmset -g | grep disksleep | sed -e s/[a-z]//g  | sed -e 's/ //g'", shell=True,stdout=subprocess.PIPE, close_fds=True)
+                        p.wait()
+                        try:
+                            self.paceDiskPing = int(p.stdout.read()) * 60
+                        except:
+                            self.paceDiskPing = 0
 
-                    if self.paceDiskPing == 0:
-                        self.nextDiskPing = thetime + 60
-                    else:
-                        self.nextDiskPing = thetime + self.paceDiskPing - 30
+                        if self.paceDiskPing == 0:
+                            self.nextDiskPing = thetime + 60
+                        else:
+                            self.nextDiskPing = thetime + self.paceDiskPing - 30
 
-                    # calculate the next one
-                    self.debugLog(u"next ping time %s (pace is %s)" % (self.nextDiskPing,self.paceDiskPing))
+                        # calculate the next one
+                        self.debugLog(u"next ping time %s (pace is %s)" % (self.nextDiskPing,self.paceDiskPing))
 
 
                 # wait
