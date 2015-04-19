@@ -18,13 +18,18 @@
         <States>
             <!-- By default relay type devices automatically inherit the
              state: onOffState.
-             
-             The plugin can specify additional custom states and custom
-             actions (in Actions.xml) to modify custom states. As an example
-             here, we define a new custom state, backlightBrightness, which
-             is used to control the brightness of the backlit display of
-             the module.
-             -->
+            -->
+            <State id="VStatus">
+                <ValueType>
+                    <List>
+                        <Option value="on">On</Option>
+                        <Option value="notmounted">Not mounted</Option>
+                        <Option value="off">Off</Option>
+                    </List>
+                </ValueType>
+                <TriggerLabel>Volume Status</TriggerLabel>
+                <ControlPageLabel>Volume Status</ControlPageLabel>
+            </State>
             <State id="VolumeType">
                 <ValueType>String</ValueType>
                 <TriggerLabel>Volume type</TriggerLabel>
@@ -40,15 +45,15 @@
                 <TriggerLabel>Volume device</TriggerLabel>
                 <ControlPageLabel>Volume device</ControlPageLabel>
             </State>
-            <State id="VolumeDeviceReady">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Volume device ready</TriggerLabel>
-                <ControlPageLabel>Volume device ready</ControlPageLabel>
-            </State>
             <State id="LastPing">
                 <ValueType>Number</ValueType>
                 <TriggerLabel>Last awake ping time</TriggerLabel>
                 <ControlPageLabel>Last awake ping time</ControlPageLabel>
+            </State>
+            <State id="pcUsed">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Used percentage</TriggerLabel>
+                <ControlPageLabel>Used percentage</ControlPageLabel>
             </State>
         </States>
 	</Device>
@@ -58,6 +63,14 @@
             <Field id="ApplicationID" type="textfield">
                 <Label>Application name:</Label>
             </Field>
+            <Field type="checkbox" id="nameSpecial">
+                <Label>Use special full name:</Label>
+                <Description>(extension is not .app)</Description>
+            </Field>
+            <Field id="ApplicationPathName" type="textfield" enabledBindingId="nameSpecial">
+                <Label>Application path and name:</Label>
+                <Description>(filled automatically if not special full name)</Description>
+            </Field>
             <Field type="checkbox" id="forceQuit">
                 <Label>Use forced quit:</Label>
                 <Description>(can result in loss of data)</Description>
@@ -66,17 +79,51 @@
         <States>
             <!-- By default relay type devices automatically inherit the
              state: onOffState.
-             
-             The plugin can specify additional custom states and custom
-             actions (in Actions.xml) to modify custom states. As an example
-             here, we define a new custom state, backlightBrightness, which
-             is used to control the brightness of the backlit display of
-             the module.
              -->
+            <State id="PStatus">
+                <ValueType>
+                    <List>
+                        <Option value="idle">Idle</Option>
+                        <Option value="runnable">Runnable</Option>
+                        <Option value="running">Running</Option>
+                        <Option value="stopped">Stopped</Option>
+                        <Option value="waiting">Waiting</Option>
+                        <Option value="zombie">Zombie</Option>
+                        <Option value="off">Off</Option>
+                    </List>
+                </ValueType>
+                <TriggerLabel>Process Status</TriggerLabel>
+                <ControlPageLabel>Process Status</ControlPageLabel>
+            </State>
             <State id="ProcessID">
                 <ValueType>String</ValueType>
                 <TriggerLabel>Process ID</TriggerLabel>
                 <ControlPageLabel>Process ID</ControlPageLabel>
+            </State>
+            <State id="LStart">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last start time</TriggerLabel>
+                <ControlPageLabel>Last start time</ControlPageLabel>
+            </State>
+            <State id="ETime">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Elapsed running time</TriggerLabel>
+                <ControlPageLabel>Elapsed running time</ControlPageLabel>
+            </State>
+            <State id="PStatus">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Process Status</TriggerLabel>
+                <ControlPageLabel>Process Status</ControlPageLabel>
+            </State>
+            <State id="PCpu">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Percentage CPU usage</TriggerLabel>
+                <ControlPageLabel>Percentage CPU usage</ControlPageLabel>
+            </State>
+            <State id="PMem">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Percentage memory usage</TriggerLabel>
+                <ControlPageLabel>Percentage memory usage</ControlPageLabel>
             </State>
         </States>
      </Device>

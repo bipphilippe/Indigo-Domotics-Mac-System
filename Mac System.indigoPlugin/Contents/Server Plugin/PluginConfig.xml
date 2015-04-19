@@ -9,6 +9,10 @@
 		<Label>Mac Os System plug-in
 Developed by Bernard Philippe (bip.philippe)</Label>
 	</Field>
+    <Field type="textfield" id="disksleepTime" readonly="yes" defaultValue="0">
+        <Label>Disk sleep time:</Label>
+        <Description>(in min. for information)</Description>
+    </Field>
     <Field id="simpleSeparator1" type="separator"/>
     <Field type="checkbox" id="showDebugInfo">
         <Label>Enable debuging:</Label>
