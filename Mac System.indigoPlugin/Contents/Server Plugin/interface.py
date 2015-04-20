@@ -40,7 +40,7 @@ def init():
 ##########
 # Application device
 ########################
-pStatusDict ={'I':u"idle",'R':u"runnable", 'S':u"running", 'T':u"stopped", 'U':u"waiting", 'Z':u"zombie" }
+pStatusDict ={'I':u"idle",'R':u"running", 'S':u"running", 'T':u"stopped", 'U':u"waiting", 'Z':u"zombie" }
 
 def getProcessStatus(thedevice, thevaluesDict):
     """ Searches for the task in system tasklist and returns onOff states

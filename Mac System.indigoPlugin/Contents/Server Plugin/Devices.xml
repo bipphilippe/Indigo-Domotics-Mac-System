@@ -85,7 +85,6 @@
                 <ValueType>
                     <List>
                         <Option value="idle">Idle</Option>
-                        <Option value="runnable">Runnable</Option>
                         <Option value="running">Running</Option>
                         <Option value="stopped">Stopped</Option>
                         <Option value="waiting">Waiting</Option>

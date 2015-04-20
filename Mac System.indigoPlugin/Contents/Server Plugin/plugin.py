@@ -119,7 +119,7 @@ class Plugin(indigo.PluginBase):
         nextDiskSpin = corethread.dialogTimer("Next disk spin",psvalue)
         
         # init full data read timer for volumes
-        readVolumeData = corethread.dialogTimer("Read volume data",300)
+        readVolumeData = corethread.dialogTimer("Read volume data",60)
 
         # init full data read timer for applications
         readApplicationData = corethread.dialogTimer("Read application data",60,30)
