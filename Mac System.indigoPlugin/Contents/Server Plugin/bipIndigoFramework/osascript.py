@@ -62,7 +62,7 @@ def run(ascript, akeys =  None, errorHandling = None):
                            stdout=subprocess.PIPE,
                            stderr=subprocess.PIPE,
                            close_fds=True)
-    indigo.activePlugin.sleep(0.5)
+    indigo.activePlugin.sleep(0.25)
     (osavalues, osaerror) = osa.communicate()
 
     # error management

@@ -63,6 +63,11 @@
             <Field id="ApplicationID" type="textfield">
                 <Label>Application name:</Label>
             </Field>
+            <Field type="checkbox" id="forceQuit">
+                <Label>Use forced quit:</Label>
+                <Description>(can result in loss of data)</Description>
+            </Field>
+            <Field id="simpleSeparator1" type="separator"/>
             <Field type="checkbox" id="nameSpecial">
                 <Label>Use special full name:</Label>
                 <Description>(extension is not .app)</Description>
@@ -70,10 +75,6 @@
             <Field id="ApplicationPathName" type="textfield" enabledBindingId="nameSpecial">
                 <Label>Application path and name:</Label>
                 <Description>(filled automatically if not special full name)</Description>
-            </Field>
-            <Field type="checkbox" id="forceQuit">
-                <Label>Use forced quit:</Label>
-                <Description>(can result in loss of data)</Description>
             </Field>
         </ConfigUI>
         <States>

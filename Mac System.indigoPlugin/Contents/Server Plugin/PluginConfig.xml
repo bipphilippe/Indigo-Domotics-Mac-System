@@ -6,7 +6,7 @@
 	<!-- <SupportURL></SupportURL> -->
 
 	<Field id="infoLabel" type="label">
-		<Label>Mac Os System plug-in
+		<Label>Mac Os System plug-in v1.1.0
 Developed by Bernard Philippe (bip.philippe)</Label>
 	</Field>
     <Field type="textfield" id="disksleepTime" readonly="yes" defaultValue="0">

@@ -64,7 +64,7 @@ def run(pscript, rule=None, akeys=None):
                            stderr=subprocess.PIPE,
                            shell=True,
                            close_fds=True)
-    indigo.activePlugin.sleep(0.25)
+    indigo.activePlugin.sleep(0.1)
     (pvalues, perror) = p.communicate()
 
     if len(perror)>0:

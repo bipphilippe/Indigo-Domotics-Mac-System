@@ -118,6 +118,12 @@ class Plugin(indigo.PluginBase):
             psvalue=600
         nextDiskSpin = corethread.dialogTimer("Next disk spin",psvalue)
         
+        # init full data read timer for volumes
+        readVolumeData = corethread.dialogTimer("Read volume data",300)
+
+        # init full data read timer for applications
+        readApplicationData = corethread.dialogTimer("Read application data",60,30)
+
         # loop
         try:
             while True:
@@ -139,6 +145,10 @@ class Plugin(indigo.PluginBase):
                             nextDiskSpin.changeInterval((psvalue-1)*60)
                         else:
                             nextDiskSpin.changeInterval(600)
+        
+                # test if time to read full data
+                timeToReadVolumeData = readVolumeData.isTime()
+                timeToReadApplicationData = readApplicationData.isTime()
                 
                 for thedevice in indigo.devices.iter("self"):
                     thevaluesDict = {}
@@ -148,18 +158,23 @@ class Plugin(indigo.PluginBase):
                     ########################
                     if (thedevice.deviceTypeId =="bip.ms.application") and thedevice.configured:
                         # states
-                        (success,thevaluesDict) = interface.getProcessData(thedevice, thevaluesDict)
+                        (success,thevaluesDict) = interface.getProcessStatus(thedevice, thevaluesDict)
                         # update
                         theupdatesDict = core.updatestates(thedevice, thevaluesDict)
                         # special images
                         core.specialimage(thedevice, "PStatus", theupdatesDict, {"idle":indigo.kStateImageSel.AvPaused,"waiting":indigo.kStateImageSel.AvPaused,"stopped":indigo.kStateImageSel.AvStopped,"zombie":indigo.kStateImageSel.SensorTripped})
+                        
+                        # do we need to read full data ?
+                        if timeToReadApplicationData or ('onOffState' in theupdatesDict):
+                            (success,thevaluesDict) = interface.getProcessData(thedevice, thevaluesDict)
+                            core.updatestates(thedevice, thevaluesDict)
 
                     ##########
                     # Volume device
                     ########################
                     elif (thedevice.deviceTypeId =="bip.ms.volume") and thedevice.configured:
                          # states
-                        (success,thevaluesDict) = interface.getVolumeData(thedevice, thevaluesDict)
+                        (success,thevaluesDict) = interface.getVolumeStatus(thedevice, thevaluesDict)
                         # spin if needed
                         if timeToSpin:
                             (success,thevaluesDict) = interface.spinVolume(thedevice, thevaluesDict)
@@ -168,8 +183,14 @@ class Plugin(indigo.PluginBase):
                         # special images
                         core.specialimage(thedevice, "VStatus", theupdatesDict, {"notmounted":indigo.kStateImageSel.AvStopped})
 
+                        # do we need to read full data ?
+                        if timeToReadVolumeData or ('onOffState' in theupdatesDict):
+                            (success,thevaluesDict) = interface.getVolumeData(thedevice, thevaluesDict)
+                            core.updatestates(thedevice, thevaluesDict)
+        
+        
                 # wait
-                corethread.sleepNext(5) # in seconds
+                corethread.sleepNext(10) # in seconds
         except self.StopThread:
             # do any cleanup here
             core.logger(traceLog = u"end of runConcurrentThread")
