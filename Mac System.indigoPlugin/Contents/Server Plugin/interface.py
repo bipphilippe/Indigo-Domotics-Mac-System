@@ -32,6 +32,10 @@ import re
 # Note the "indigo" module is automatically imported and made available inside
 # our global name space by the host process.
 
+_repProcessStatus = re.compile(r" *([0-9]+) +(.).+$")
+_repProcessData = re.compile(r"(.+?)  +([0-9.,]+) +([0-9.,]+) +(.+)$")
+_repVolumeData2 = re.compile(r".+? [0-9]+ +([0-9]+) +([0-9]+) .+")
+
 def init():
     osascript.init()
     shellscript.init()
@@ -44,7 +48,7 @@ pStatusDict ={'I':u"idle",'R':u"running", 'S':u"running", 'T':u"stopped", 'U':u"
 
 def getProcessStatus(thedevice, thevaluesDict):
     """ Searches for the task in system tasklist and returns onOff states
-        
+
         Args:
             thedevice: current device
             thevaluesDict: dictionary of the status values so far
@@ -52,8 +56,8 @@ def getProcessStatus(thedevice, thevaluesDict):
             success: True if success, False if not
             thevaluesDict updated with new data if success, equals to the input if not
     """
-    pslist = shellscript.run(u"ps -awxc -opid,state,comm | grep '" + thedevice.pluginProps['ApplicationID'] + "$'",[(0,6),(6,7)],['ProcessID','PStatus'])
-    
+    pslist = shellscript.run(u"ps -awxc -opid,state,comm | grep ' %s$'" % (thedevice.pluginProps['ApplicationID']),_repProcessStatus,['ProcessID','PStatus'])
+
     if pslist['ProcessID']=='':
         thevaluesDict["onOffState"]=False
         thevaluesDict["ProcessID"]=0
@@ -76,9 +80,9 @@ def getProcessData(thedevice, thevaluesDict):
             success: True if success, False if not
             thevaluesDict updated with new data if success, equals to the input if not
     """
-    pslist = shellscript.run(u"ps -awxc -opid,lstart,etime,pcpu,pmem,state,comm | grep '" + thedevice.pluginProps['ApplicationID'] + "$'",[(0,6),(6,31),(31,47),(47,53),(53,58),(58,59)],['ProcessID','LStart','ETime','PCpu','PMem','PStatus'])
+    pslist = shellscript.run(u"ps -wxc -olstart,pcpu,pmem,etime -p%s | sed 1d" % (thevaluesDict["ProcessID"]),_repProcessData,['LStart','PCpu','PMem','ETime'])
 
-    if pslist['ProcessID']=='':
+    if pslist['LStart']=='':
         thevaluesDict["onOffState"]=False
         thevaluesDict["ProcessID"]=0
         thevaluesDict["PStatus"]="off"
@@ -87,10 +91,7 @@ def getProcessData(thedevice, thevaluesDict):
         thevaluesDict["PCpu"]=0
         thevaluesDict["PMem"]=0
     else:
-        thevaluesDict["onOffState"]=True
         thevaluesDict.update(pslist)
-        # special update for process status
-        thevaluesDict["PStatus"]= pStatusDict[thevaluesDict["PStatus"]]
         # special update for ellapsed time : convert to seconds
         try:
             (longday,longtime)=thevaluesDict["ETime"].split('-')
@@ -111,7 +112,7 @@ def getProcessData(thedevice, thevaluesDict):
 ########################
 def getVolumeStatus(thedevice, thevaluesDict):
     """ Searches for the volume to return states OnOff only
-        
+
         Args:
             thedevice: current device
             thevaluesDict: dictionary of the status values so far
@@ -120,7 +121,7 @@ def getVolumeStatus(thedevice, thevaluesDict):
             thevaluesDict updated with new data if success, equals to the input if not
     """
     # check if mounted
-    if shellscript.run(u"ls -1 /Volumes | grep '^" + thedevice.pluginProps['VolumeID'] +"$'")>'':
+    if shellscript.run(u"ls -1 /Volumes | grep '^%s$'" %(thedevice.pluginProps['VolumeID']))>'':
         thevaluesDict["onOffState"]=True
         thevaluesDict["VStatus"]="on"
     else:
@@ -138,19 +139,17 @@ def getVolumeData(thedevice, thevaluesDict):
             success: True if success, False if not
             thevaluesDict updated with new data if success, equals to the input if not
         """
-    pslist = shellscript.run(u"/usr/sbin/diskutil list | grep ' " + thedevice.pluginProps['VolumeID'] +"  '",[(6,32),(57,67),(68,-1)],['VolumeType','VolumeSize','VolumeDevice'])
+    pslist = shellscript.run(u"/usr/sbin/diskutil list | grep ' %s  '" % (thedevice.pluginProps['VolumeID']),[(6,32),(57,67),(68,-1)],['VolumeType','VolumeSize','VolumeDevice'])
 
     if pslist['VolumeDevice']=='':
         thevaluesDict["onOffState"]=False
         thevaluesDict["VStatus"]="off"
     else:
         thevaluesDict.update(pslist)
-        # check if mounted
-        if shellscript.run(u"ls -1 /Volumes | grep '^" + thedevice.pluginProps['VolumeID'] +"$'")>'':
-            # find free space
-            pslist = shellscript.run(u"/bin/df | grep '" + thevaluesDict['VolumeDevice'] +"'",re.compile(r".+? [0-9]+ +([0-9]+) +([0-9]+) .+"),['Used','Available'])
+        # find free space
+        pslist = shellscript.run(u"/bin/df | grep '%s'" % (thevaluesDict['VolumeDevice']),_repVolumeData2,['Used','Available'])
+        if pslist['Used'] !='':
             thevaluesDict['pcUsed']= (int(pslist['Used'])*100)/(int(pslist['Used']) + int(pslist['Available']))
-            # status on
             thevaluesDict["onOffState"]=True
             thevaluesDict["VStatus"]="on"
         else:
@@ -172,7 +171,7 @@ def spinVolume(thedevice, thevaluesDict):
         """
 
     if (thedevice.states["VStatus"]=="on") and (thedevice.pluginProps["keepAwaken"]):
-        psvalue = shellscript.run(u"touch '/Volumes/" + thedevice.pluginProps['VolumeID'] + "/.spinner'")
+        psvalue = shellscript.run(u"touch '/Volumes/%s/.spinner'" % (thedevice.pluginProps['VolumeID']))
         if psvalue is None:
             return (False, thevaluesDict)
         else:

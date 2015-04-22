@@ -18,10 +18,6 @@
     You should have received a copy of the GNU General Public License along
     with this program; if not, write to the Free Software Foundation, Inc.,
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.#
-
-
-    History
-    Rev 1.0.0 :   initial version
 """
 ####################################################################################
 
@@ -29,6 +25,43 @@ import indigo
 import core
 import time
 from threading import Timer
+
+
+def init():
+    """ Initiate
+    """
+    indigo.activePlugin._requestedUpdate = dict()
+
+########################################
+def setUpdateRequest(thedevice, nbTime=1):
+    """ set the device states to be updated
+        
+    Args:
+        thedevice: current device
+    """
+
+    core.logger(traceLog = u"Device \"%s\" has %s update requests stacked" % (thedevice.name,nbTime))
+    indigo.activePlugin._requestedUpdate[thedevice.id]=nbTime
+
+
+########################################
+def isUpdateRequested(thedevice):
+    """ Test is the device states need to be updated
+        
+        Args:
+            thedevice: current device
+        Returns:
+            True is updateRequested
+        """
+    
+    if thedevice.id in indigo.activePlugin._requestedUpdate:
+        if indigo.activePlugin._requestedUpdate[thedevice.id]>0:
+            indigo.activePlugin._requestedUpdate[thedevice.id] = indigo.activePlugin._requestedUpdate[thedevice.id]-1
+            core.logger(traceLog = u"Device \"%s\" is going to process an update request" % (thedevice.name))
+            return True
+
+    return False
+
 
 ########################################
 def sleepNext(thetime):

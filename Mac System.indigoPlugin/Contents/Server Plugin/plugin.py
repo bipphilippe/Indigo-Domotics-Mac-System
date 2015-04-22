@@ -74,7 +74,7 @@ class Plugin(indigo.PluginBase):
         # startup call
         core.logger(traceLog = u"startup called")
         interface.init()
-
+        corethread.init()
         core.logger(traceLog = u"end of startup")
 
     def shutdown(self):
@@ -165,7 +165,10 @@ class Plugin(indigo.PluginBase):
                         core.specialimage(thedevice, "PStatus", theupdatesDict, {"idle":indigo.kStateImageSel.AvPaused,"waiting":indigo.kStateImageSel.AvPaused,"stopped":indigo.kStateImageSel.AvStopped,"zombie":indigo.kStateImageSel.SensorTripped})
                         
                         # do we need to read full data ?
-                        if timeToReadApplicationData or ('onOffState' in theupdatesDict):
+                        if ('onOffState' in theupdatesDict):
+                            corethread.setUpdateRequest(thedevice)
+
+                        if timeToReadApplicationData or corethread.isUpdateRequested(thedevice):
                             (success,thevaluesDict) = interface.getProcessData(thedevice, thevaluesDict)
                             core.updatestates(thedevice, thevaluesDict)
 
@@ -184,9 +187,14 @@ class Plugin(indigo.PluginBase):
                         core.specialimage(thedevice, "VStatus", theupdatesDict, {"notmounted":indigo.kStateImageSel.AvStopped})
 
                         # do we need to read full data ?
-                        if timeToReadVolumeData or ('onOffState' in theupdatesDict):
+                        if ('onOffState' in theupdatesDict):
+                            corethread.setUpdateRequest(thedevice,3)
+                        
+                        if timeToReadVolumeData or corethread.isUpdateRequested(thedevice):
                             (success,thevaluesDict) = interface.getVolumeData(thedevice, thevaluesDict)
                             core.updatestates(thedevice, thevaluesDict)
+                            
+                            
         
         
                 # wait
@@ -205,6 +213,9 @@ class Plugin(indigo.PluginBase):
         if theactionid is None:
             # no action to do
             return
+        
+        if theactionid == indigo.kDeviceGeneralAction.RequestStatus:
+            corethread.setUpdateRequest(dev)
 
         ##########
         # Application device

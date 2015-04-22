@@ -18,17 +18,17 @@
     You should have received a copy of the GNU General Public License along
     with this program; if not, write to the Free Software Foundation, Inc.,
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.#
-
-
-    History
-    Rev 1.0.0 :   initial version
 """
 ####################################################################################
 
 import indigo
 import core
 
-_kDimmerRelayActionDict = {indigo.kDimmerRelayAction.AllLightsOff:'AllLightsOff',
+_kDimmerRelayActionDict = {indigo.kDeviceGeneralAction.Beep:'Beep',
+indigo.kDeviceGeneralAction.EnergyUpdate:'EnergyUpdate',
+indigo.kDeviceGeneralAction.EnergyReset:'EnergyReset',
+indigo.kDeviceGeneralAction.RequestStatus:'RequestStatus',
+indigo.kDimmerRelayAction.AllLightsOff:'AllLightsOff',
 indigo.kDimmerRelayAction.AllLightsOn:'AllLightsOn',
 indigo.kDimmerRelayAction.AllOff:'AllOff',
 indigo.kDimmerRelayAction.BrightenBy:'BrightenBy',
