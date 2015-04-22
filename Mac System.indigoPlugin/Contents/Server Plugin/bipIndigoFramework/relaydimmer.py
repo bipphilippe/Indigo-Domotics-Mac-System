@@ -50,7 +50,7 @@ def startAction(thedevice, theaction):
     """
 
     theactionid = theaction.deviceAction
-    core.logger(traceLog = u"requesting device \"%s\" action %s " % (thedevice.name,_kDimmerRelayActionDict[theactionid]))
+    core.logger(traceLog = u"requesting device \"%s\" action %s" % (thedevice.name,_kDimmerRelayActionDict[theactionid]))
     # work on toggling
     if theactionid == indigo.kDimmerRelayAction.Toggle:
         if thedevice.states['onOffState']:
@@ -59,11 +59,11 @@ def startAction(thedevice, theaction):
             theactionid = indigo.kDimmerRelayAction.TurnOn
 
     # test if needed
-    if (theaction == indigo.kDimmerRelayAction.TurnOn) and (thedevice.states['onOffState']):
+    if (theactionid == indigo.kDimmerRelayAction.TurnOn) and (thedevice.states['onOffState']):
         core.logger(msgLog= u"device %s is already on" % (thedevice.name))
         return None
 
-    if (theaction == indigo.kDimmerRelayAction.TurnOff) and not(thedevice.states['onOffState']):
+    if (theactionid == indigo.kDimmerRelayAction.TurnOff) and not(thedevice.states['onOffState']):
         core.logger(msgLog = u"device %s is already off" % (thedevice.name))
         return None
 
