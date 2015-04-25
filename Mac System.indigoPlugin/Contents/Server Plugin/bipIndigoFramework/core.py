@@ -23,6 +23,11 @@
 
 import indigo
 
+MSG_MAIN_EVENTS = 1
+MSG_SECONDARY_EVENTS = 2
+MSG_DEBUG = 4
+MSG_RAW_DEBUG = 8
+
 ################################################################################
 def debugFlags(valueDict):
     """ Get proporty value of standard indigo debug and an extra raw debug flag (plugin value)
@@ -30,51 +35,55 @@ def debugFlags(valueDict):
         Args:
             valueDict: indigo dictionnary containing the following keys
         Keys:
-            showDebugInfo: true for level 1 debug messages
-            showShellLog: true for detailed debug messages including shell/osa info
+            logLevel: level of messaging
     """
     try:
-        if valueDict[u'showDebugInfo']:
+        indigo.activePlugin.logLevel = int(valueDict[u'logLevel'])
+        if indigo.activePlugin.logLevel & MSG_DEBUG:
             indigo.activePlugin.debug = True
         else:
             indigo.activePlugin.debug = False
-        if valueDict[u'showShellLog']:
-            indigo.activePlugin.debugraw = True
-        else:
-            indigo.activePlugin.debugraw = False
     except:
         pass
 
 
 ########################################
-def logger(traceLog = None, traceRaw = None, msgLog = None, errLog = None ):
+def logger(traceLog = None, traceRaw = None, msgLog = None, errLog = None, isMain=True ):
     """ Logger function extending the standard indigo log functions
         
         Args:
-            traceLog: text to be inserted in log if plugin property showDebugInfo=True
-            traceRaw: text to be inserted in log if plugin property showShellLog=True
-            errLog: text to be inseted in log as an error
-            msgLog: text to be inserted in log as standard message
-            
-            If both traceLog and traceRaw are given:
-                - traceLog message only will be output if showDebugInfo=True and showShellLog=False
-                - traceRaw message only will be output if showShellLog=True
-            this allows to have a short trace message and a verbose one defined by the same call
-            
-            Messages are output in this order:
-                - traceLog or traceRaw as they should detail what is going to be done
-                - errLog as it should describe an error that occured
-                - msgLog as it should conclude a successfull process
+        traceLog: text to be inserted in log if plugin property logLevel contains MSG_DEBUG
+        traceRaw: text to be inserted in log if plugin property loglevel contains MSG_RAW_DEBUG
+        errLog: text to be inseted in log as an error (any logLevel)
+        msgLog: text to be inserted in log as standard message if plugin property loglevel contains MSG_MAIN_EVENTS
+        or MSG_SECONDARY_EVENTS, depending on isMain
+        isMain : true is the message is a MSG_MAIN_EVENTS
+        
+        If both traceLog and traceRaw are given:
+        - traceLog message only will be output if logLevel contains MSG_DEBUG and not MSG_RAW_DEBUG
+        - traceRaw message only will be output if logLevel contains MSG_RAW_DEBUG
+        this allows to have a short trace message and a verbose one defined by the same call
+        
+        Messages are output in this order:
+        - traceLog or traceRaw as they should detail what is going to be done
+        - errLog as it should describe an error that occured
+        - msgLog as it should conclude a successfull process
     """
-    
-    if indigo.activePlugin.debugraw and (traceRaw is not None):
+            
+    # debug messages
+    if (indigo.activePlugin.logLevel & MSG_RAW_DEBUG) and (traceRaw is not None):
         indigo.activePlugin.debugLog(traceRaw)
-    elif traceLog is not None:
+    elif (indigo.activePlugin.logLevel & MSG_DEBUG) and (traceLog is not None):
         indigo.activePlugin.debugLog(traceLog)
+                
+    # error message
     if errLog is not None:
         indigo.activePlugin.errorLog(errLog)
-    if msgLog is not None:
+                        
+    # log message (the two levels, depending on msgSec)
+    if (msgLog is not None) and ((indigo.activePlugin.logLevel & MSG_SECONDARY_EVENTS) or ((indigo.activePlugin.logLevel & MSG_MAIN_EVENTS) and isMain)):
         indigo.server.log(msgLog)
+
 
 
 ########################################
@@ -93,6 +102,7 @@ def strutf8(data):
     else:
         data = str(data).decode('utf-8')
     return data
+
 
 ########################################
 def updatestates(thedevice, thevaluesDict):
@@ -113,7 +123,7 @@ def updatestates(thedevice, thevaluesDict):
         thevalue=strutf8(thevalue)
 
         if theactualvalue.lower() != thevalue.lower() :
-            logger(traceRaw = u"%s value : %s <> %s" % (thekey, thedevice.states[thekey],thevalue), msgLog=u'received "%s" status %s update to %s' % (thedevice.name,thekey,thevalue))
+            logger(traceRaw = u"%s value : %s <> %s" % (thekey, thedevice.states[thekey],thevalue), msgLog=u'received "%s" status %s update to %s' % (thedevice.name,thekey,thevalue), isMain=(thedevice.displayStateId == thekey))
             thedevice.updateStateOnServer(key=thekey, value=thevalue)
             updateDict[thekey]=thevalue
             logger(traceRaw = u"%s value : %s == %s" % (thekey, thedevice.states[thekey],thevalue))
@@ -124,6 +134,7 @@ def updatestates(thedevice, thevaluesDict):
     logger(traceRaw = u"Updated Keys: Values   : %s" % (updateDict))
 
     return updateDict
+
 
 ########################################
 def specialimage(thedevice, thekey, thedict, theimagedict):
@@ -143,6 +154,7 @@ def specialimage(thedevice, thekey, thedict, theimagedict):
         else:
             logger(traceLog = u"device \"%s\" has automatic image for %s = %s" % (thedevice.name, thekey, thedict[thekey]))
             thedevice.updateStateImageOnServer(indigo.kStateImageSel.Auto)
+
 
 ########################################
 def updatedeviceprops(thedevice, thevaluesDict):
@@ -177,6 +189,7 @@ def updatedeviceprops(thedevice, thevaluesDict):
         logger(traceRaw = u"Updated Device Property: Values   : %s" % (updateDict))
     
     return updateDict
+
 
 ########################################
 def updatepluginprops(thevaluesDict):

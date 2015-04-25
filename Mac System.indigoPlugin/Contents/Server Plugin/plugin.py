@@ -21,22 +21,40 @@
 
 
     History
-    Rev 1.1.0 :   uses a framework common to my plugins
-                  new states for devices
-                  introduce special state icons
-                  a few bug corrections
-                  better use of ps command to collect more information
-                  use of df command to collect % used
-                  
-    Rev 1.0.3 :   decrease CPU overhead by incrementing pace time
-                  correction of thetime variable non-assigned but used when no volume is declared
-                  
-    Rev 1.0.2 :   replace "open" command by "run" in osascript
-                  add decode('utf-8') for output of error messages
-                  
-    Rev 1.0.1 :   correct the grep used for finding processes for more accurate match
-    
-    Rev 1.0.0 :   initial version
+    =======
+    Rev 1.0.0 : Initial version
+    Rev 1.0.1 : Correct the grep used for finding processes for more accurate match
+    Rev 1.0.2 : Packaging for initial release - 20 march 2015
+                 - replace "open" command by "run" in osascript
+                 - add decode('utf-8') for output of error messages
+    Rev 1.0.3 : Correction of two bugs - 22 march 2015
+                 - decrease CPU overhead by incrementing pace time
+                 - correct thetime variable non-assigned but used when no volume is declared (thanks to kw123)
+    Rev 1.1.0 : Enhanced version with more states - 20 april 2015
+                Manages new states for devices :
+                 - enhanced use of ps command to collect more information
+                 - use of df command to collect % used
+                Introduces special state icons to reflect some special states :
+                 - volume connected but not mounted
+                 - application frozen or waiting
+                Optimization :
+                 - updates detailed volume an application data in a slower pace than the onOff state
+                Some bugs corrections, including :
+                 - library error when launching some application
+                 - keep alive timing too close to sleep to prevent some kind of disks to sleep
+                First version based on the Bip Framework
+    Rev 1.1.1 : Bug correction - 22 april 2015
+                Corrects the following bugs:
+                 - update requests are now processed
+                 - ps dump process is now more permissive on data positions
+                 - avoid sending Turn On when device already On
+                 - avoid sending Turn Off when device already Off
+    Rev 1.2.0 : Enhancements - 25 april 2005
+                 - add a "about" menu
+                 - new log management, less verbose
+                 - manages the "Enable Indigo Communication" flag
+               Some bugs corrections, including:
+                 - library error when closing some application
 """
 ####################################################################################
 
@@ -47,18 +65,23 @@ from bipIndigoFramework import shellscript
 from bipIndigoFramework import osascript
 from bipIndigoFramework import relaydimmer
 import interface
+import re
 
 
 # Note the "indigo" module is automatically imported and made available inside
 # our global name space by the host process.
+
+
+_repCloseAppError = re.compile(r"(Error loading .Library)")
+
 
 ################################################################################
 class Plugin(indigo.PluginBase):
     ########################################
     def __init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs):
         indigo.PluginBase.__init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs)
-        self.debugraw = False
         self.debug = False
+        self.logLevel = 1
 
     def __del__(self):
         indigo.PluginBase.__del__(self)
@@ -193,9 +216,6 @@ class Plugin(indigo.PluginBase):
                         if timeToReadVolumeData or corethread.isUpdateRequested(thedevice):
                             (success,thevaluesDict) = interface.getVolumeData(thedevice, thevaluesDict)
                             core.updatestates(thedevice, thevaluesDict)
-                            
-                            
-        
         
                 # wait
                 corethread.sleepNext(10) # in seconds
@@ -216,6 +236,7 @@ class Plugin(indigo.PluginBase):
         
         if theactionid == indigo.kDeviceGeneralAction.RequestStatus:
             corethread.setUpdateRequest(dev)
+            return
 
         ##########
         # Application device
@@ -231,7 +252,7 @@ class Plugin(indigo.PluginBase):
                     # status update will be done by runConcurrentThread
                 else:
                     osascript.run(u'''(* Tell to quit *)
-                        tell application "%s" to quit''' % (dev.pluginProps['ApplicationID']))
+                        tell application "%s" to quit''' % (dev.pluginProps['ApplicationID']), )
                     # status update will be done by runConcurrentThread
 
         ##########
@@ -245,10 +266,10 @@ class Plugin(indigo.PluginBase):
             elif (theactionid == indigo.kDimmerRelayAction.TurnOff):
                 if dev.pluginProps['forceQuit']:
                     shellscript.run(u"/usr/sbin/diskutil umount force %s" % (dev.states['VolumeDevice']))
-                # status update will be done by runConcurrentThread
+                    # status update will be done by runConcurrentThread
                 else:
                     shellscript.run(u"/usr/sbin/diskutil umount %s" % (dev.states['VolumeDevice']))
-                # status update will be done by runConcurrentThread
+                    # status update will be done by runConcurrentThread
 
 
     ########################################

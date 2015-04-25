@@ -6,7 +6,7 @@
 	<!-- <SupportURL></SupportURL> -->
 
 	<Field id="infoLabel" type="label">
-		<Label>Mac Os System plug-in v1.1.0
+		<Label>Mac Os System plug-in
 Developed by Bernard Philippe (bip.philippe)</Label>
 	</Field>
     <Field type="textfield" id="disksleepTime" readonly="yes" defaultValue="0">
@@ -14,12 +14,14 @@ Developed by Bernard Philippe (bip.philippe)</Label>
         <Description>(in min. for information)</Description>
     </Field>
     <Field id="simpleSeparator1" type="separator"/>
-    <Field type="checkbox" id="showDebugInfo">
-        <Label>Enable debuging:</Label>
-        <Description>(not recommended)</Description>
+    <Field type="menu" id="logLevel" defaultValue="1">
+        <Label>Logging level:</Label>
+        <List>
+            <Option value="0">0: No message except errors</Option>
+            <Option value="1">1: Main events messages (default)</Option>
+            <Option value="3">2: All events messages</Option>
+            <Option value="7">3: Debug mode</Option>
+            <Option value="15">4: Debug mode &amp; log raw data</Option>
+        </List>
     </Field>
-	<Field type="checkbox" id="showShellLog">
-		<Label>Enable log raw data:</Label>
-		<Description>(use for testing only)</Description>
-	</Field>
 </PluginConfig>

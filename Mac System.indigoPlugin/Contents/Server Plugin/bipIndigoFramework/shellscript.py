@@ -53,7 +53,7 @@ def run(pscript, rule=None, akeys=None):
             or None if error
     """
 
-    core.logger(traceRaw = u"going to call shell %s" % (pscript), traceLog = u"going to call shell %s..." % (pscript[:16]))
+    core.logger(traceRaw = u"going to call shell %s" % (pscript), traceLog = u"going to call shell %s..." % (pscript[:64]))
 
     p = subprocess.Popen(pscript,
                            stdout=subprocess.PIPE,
@@ -93,7 +93,7 @@ def run(pscript, rule=None, akeys=None):
             for thekey in akeys:
                 returnvalue[thekey]=''
 
-    core.logger(traceRaw = u"returned from shell: %s" % returnvalue, traceLog = u"returned from shell %s..." % (pscript[:16]))
+    core.logger(traceRaw = u"returned from shell: %s" % returnvalue, traceLog = u"returned from shell %s..." % (pscript[:64]))
 
     return returnvalue
 
