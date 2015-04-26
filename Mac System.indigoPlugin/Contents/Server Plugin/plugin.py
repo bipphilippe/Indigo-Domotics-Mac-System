@@ -34,7 +34,7 @@
                 Manages new states for devices :
                  - enhanced use of ps command to collect more information
                  - use of df command to collect % used
-                Introduces special state icons to reflect some special states :
+                Introduces special state icons to reflect some special states:
                  - volume connected but not mounted
                  - application frozen or waiting
                 Optimization :
@@ -53,7 +53,8 @@
                  - add a "about" menu
                  - new log management, less verbose
                  - manages the "Enable Indigo Communication" flag
-               Some bugs corrections, including:
+    Rev 1.2.1 : Library error correction - 26 april 2005
+                Some bugs corrections, including:
                  - library error when closing some application
 """
 ####################################################################################
@@ -72,7 +73,7 @@ import re
 # our global name space by the host process.
 
 
-_repCloseAppError = re.compile(r"(Error loading .Library)")
+_repCloseAppError = re.compile(r"Error loading .Library.ScriptingAdditions")
 
 
 ################################################################################
@@ -252,7 +253,7 @@ class Plugin(indigo.PluginBase):
                     # status update will be done by runConcurrentThread
                 else:
                     osascript.run(u'''(* Tell to quit *)
-                        tell application "%s" to quit''' % (dev.pluginProps['ApplicationID']), )
+                        tell application "%s" to quit''' % (dev.pluginProps['ApplicationID']), errorHandling = _repCloseAppError )
                     # status update will be done by runConcurrentThread
 
         ##########
