@@ -180,7 +180,7 @@ class Plugin(indigo.PluginBase):
                     ##########
                     # Application device
                     ########################
-                    if (thedevice.deviceTypeId =="bip.ms.application") and thedevice.configured:
+                    if (thedevice.deviceTypeId =="bip.ms.application") and thedevice.configured and thedevice.enabled:
                         # states
                         (success,thevaluesDict) = interface.getProcessStatus(thedevice, thevaluesDict)
                         # update
@@ -199,7 +199,7 @@ class Plugin(indigo.PluginBase):
                     ##########
                     # Volume device
                     ########################
-                    elif (thedevice.deviceTypeId =="bip.ms.volume") and thedevice.configured:
+                    elif (thedevice.deviceTypeId =="bip.ms.volume") and thedevice.configured and thedevice.enabled:
                          # states
                         (success,thevaluesDict) = interface.getVolumeStatus(thedevice, thevaluesDict)
                         # spin if needed
