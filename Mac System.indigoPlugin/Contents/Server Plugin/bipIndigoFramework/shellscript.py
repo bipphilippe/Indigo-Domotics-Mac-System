@@ -33,8 +33,6 @@ def init():
     """
     pass
 
-
-
 ########################################
 def run(pscript, rule=None, akeys=None):
     """ Calls shell script and returns the result
@@ -52,8 +50,11 @@ def run(pscript, rule=None, akeys=None):
             or unicode string returned by the script is akeys is None,
             or None if error
     """
+    
+    logscript=(pscript.split(u'|'))[0]
 
-    core.logger(traceRaw = u"going to call shell %s" % (pscript), traceLog = u"going to call shell %s..." % (pscript[:64]))
+    core.logger(traceRaw = u"going to call shell %s" % (pscript), traceLog = u"going to call shell %s..." % (logscript))
+
 
     p = subprocess.Popen(pscript,
                            stdout=subprocess.PIPE,
@@ -93,7 +94,7 @@ def run(pscript, rule=None, akeys=None):
             for thekey in akeys:
                 returnvalue[thekey]=''
 
-    core.logger(traceRaw = u"returned from shell: %s" % returnvalue, traceLog = u"returned from shell %s..." % (pscript[:64]))
+    core.logger(traceRaw = u"returned from shell: %s" % (returnvalue), traceLog = u"returned from shell %s..." % (logscript))
 
     return returnvalue
 

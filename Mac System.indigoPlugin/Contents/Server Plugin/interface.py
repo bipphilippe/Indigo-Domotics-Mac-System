@@ -27,6 +27,8 @@ from bipIndigoFramework import core
 from bipIndigoFramework import osascript
 from bipIndigoFramework import shellscript
 import re
+import pipes
+
 
 
 # Note the "indigo" module is automatically imported and made available inside
@@ -56,7 +58,7 @@ def getProcessStatus(thedevice, thevaluesDict):
             success: True if success, False if not
             thevaluesDict updated with new data if success, equals to the input if not
     """
-    pslist = shellscript.run(u"ps -awxc -opid,state,comm | grep ' %s$'" % (thedevice.pluginProps['ApplicationID']),_repProcessStatus,['ProcessID','PStatus'])
+    pslist = shellscript.run(u"ps -awxc -opid,state,comm | grep %s" % (pipes.quote(u' ' + thedevice.pluginProps['ApplicationID']+u'$')),_repProcessStatus,['ProcessID','PStatus'])
 
     if pslist['ProcessID']=='':
         thevaluesDict["onOffState"]=False
@@ -121,7 +123,7 @@ def getVolumeStatus(thedevice, thevaluesDict):
             thevaluesDict updated with new data if success, equals to the input if not
     """
     # check if mounted
-    if shellscript.run(u"ls -1 /Volumes | grep '^%s$'" %(thedevice.pluginProps['VolumeID']))>'':
+    if shellscript.run(u"ls -1 /Volumes | grep %s" %(pipes.quote(u'^'+thedevice.pluginProps['VolumeID']+u'$')))>'':
         thevaluesDict["onOffState"]=True
         thevaluesDict["VStatus"]="on"
     else:
@@ -139,7 +141,7 @@ def getVolumeData(thedevice, thevaluesDict):
             success: True if success, False if not
             thevaluesDict updated with new data if success, equals to the input if not
         """
-    pslist = shellscript.run(u"/usr/sbin/diskutil list | grep ' %s  '" % (thedevice.pluginProps['VolumeID']),[(6,32),(57,67),(68,-1)],['VolumeType','VolumeSize','VolumeDevice'])
+    pslist = shellscript.run(u"/usr/sbin/diskutil list | grep %s" % (pipes.quote(u' '+thedevice.pluginProps['VolumeID']+u'  ')),[(6,32),(57,67),(68,-1)],['VolumeType','VolumeSize','VolumeDevice'])
 
     if pslist['VolumeDevice']=='':
         thevaluesDict["onOffState"]=False
@@ -171,7 +173,7 @@ def spinVolume(thedevice, thevaluesDict):
         """
 
     if (thedevice.states["VStatus"]=="on") and (thedevice.pluginProps["keepAwaken"]):
-        psvalue = shellscript.run(u"touch '/Volumes/%s/.spinner'" % (thedevice.pluginProps['VolumeID']))
+        psvalue = shellscript.run(u"touch %s" % (pipes.quote(u'/Volumes/'+thedevice.pluginProps['VolumeID']+u'/.spinner')))
         if psvalue is None:
             return (False, thevaluesDict)
         else:

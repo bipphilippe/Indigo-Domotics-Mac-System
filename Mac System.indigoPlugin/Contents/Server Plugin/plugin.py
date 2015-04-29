@@ -56,6 +56,9 @@
     Rev 1.2.1 : Library error correction - 26 april 2005
                 Some bugs corrections, including:
                  - library error when closing some application
+    Rev 1.2.2 : Volume device with special characters - 29 april 2005
+                Some bugs corrections, including:
+                 - Error on volume with special characters as '
 """
 ####################################################################################
 
@@ -67,6 +70,7 @@ from bipIndigoFramework import osascript
 from bipIndigoFramework import relaydimmer
 import interface
 import re
+import pipes
 
 
 # Note the "indigo" module is automatically imported and made available inside
@@ -157,7 +161,7 @@ class Plugin(indigo.PluginBase):
                 timeToSpin = nextDiskSpin.isTime()
                 if timeToSpin:
                     # get disk sleep value
-                    psvalue = shellscript.run(u"pmset -g | grep disksleep | sed -e s/[a-z]//g  | sed -e 's/ //g'")
+                    psvalue = shellscript.run(u"pmset -g | grep disksleep | sed -e s/[a-z]//g",u"sed -e 's/ //g'")
                     try:
                         psvalue = int(psvalue)
                     except:
@@ -244,7 +248,7 @@ class Plugin(indigo.PluginBase):
         ########################
         if (dev.deviceTypeId =="bip.ms.application"):
             if (theactionid == indigo.kDimmerRelayAction.TurnOn):
-                shellscript.run(u"open '%s'" % (dev.pluginProps['ApplicationPathName']))
+                shellscript.run(u"open %s" % (pipes.quote(dev.pluginProps['ApplicationPathName'])))
                 # status update will be done by runConcurrentThread
 
             elif (theactionid == indigo.kDimmerRelayAction.TurnOff):
