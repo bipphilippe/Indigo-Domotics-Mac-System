@@ -19,9 +19,26 @@ Developed by Bernard Philippe (bip.philippe)</Label>
         <List>
             <Option value="0">0: No message except errors</Option>
             <Option value="1">1: Main events messages (default)</Option>
-            <Option value="3">2: All events messages</Option>
+             <Option value="3">2: All events messages</Option>
             <Option value="7">3: Debug mode</Option>
-            <Option value="15">4: Debug mode &amp; log raw data</Option>
+            <Option value="23">4: Debug mode &amp; log states and properties</Option>
+            <Option value="31">5: Debug mode &amp; log dialog data</Option>
+            <Option value="99">X: Personalized debug mode</Option>
         </List>
+    </Field>
+    <Field id="logMainEvents" type="checkbox" visibleBindingId="logLevel" visibleBindingValue="99" defaultValue="True">
+        <Label>Log device displayed state changes:</Label>
+    </Field>
+    <Field id="logSecondaryEvents" type="checkbox" visibleBindingId="logLevel" visibleBindingValue="99" defaultValue="True">
+        <Label>Log any state changes:</Label>
+    </Field>
+    <Field id="logDebug" type="checkbox" visibleBindingId="logLevel" visibleBindingValue="99" defaultValue="True">
+        <Label>Log process debug information:</Label>
+    </Field>
+    <Field id="logStateDebug" type="checkbox" visibleBindingId="logLevel" visibleBindingValue="99" defaultValue="True">
+        <Label>Log state debug information:</Label>
+    </Field>
+    <Field id="logRawDebug" type="checkbox" visibleBindingId="logLevel" visibleBindingValue="99" defaultValue="True">
+        <Label>Log dialog debug information:</Label>
     </Field>
 </PluginConfig>

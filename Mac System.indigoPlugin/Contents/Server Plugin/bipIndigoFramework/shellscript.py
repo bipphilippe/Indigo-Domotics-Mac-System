@@ -53,7 +53,7 @@ def run(pscript, rule=None, akeys=None):
     
     logscript=(pscript.split(u'|'))[0]
 
-    core.logger(traceRaw = u"going to call shell %s" % (pscript), traceLog = u"going to call shell %s..." % (logscript))
+    core.logger(traceRaw = u'going to call shell %s' % (pscript), traceLog = u'going to call shell %s...' % (logscript))
 
 
     p = subprocess.Popen(pscript,
@@ -66,7 +66,7 @@ def run(pscript, rule=None, akeys=None):
 
     if len(perror)>0:
         # test if error
-        core.logger(errLog = u"shell script failed because %s" % (perror.decode('utf-8')))
+        core.logger(errLog = u'shell script failed because %s' % (perror.decode('utf-8')))
         return None
 
     if akeys is None:
@@ -94,7 +94,7 @@ def run(pscript, rule=None, akeys=None):
             for thekey in akeys:
                 returnvalue[thekey]=''
 
-    core.logger(traceRaw = u"returned from shell: %s" % (returnvalue), traceLog = u"returned from shell %s..." % (logscript))
+    core.logger(traceRaw = u'returned from shell: %s' % (core.formatdump(returnvalue)), traceLog = u'returned from shell %s...' % (logscript))
 
     return returnvalue
 

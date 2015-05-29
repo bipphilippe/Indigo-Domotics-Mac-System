@@ -26,6 +26,8 @@ import indigo
 import core
 import re
 
+_repCloseAppErrorFilter = re.compile(r".Library.ScriptingAdditions.")
+_valueConvertDict = {u'True':True, u'true':True, u'False':False, u'false':False}
 
 ########################################
 def init():
@@ -53,9 +55,9 @@ def run(ascript, akeys =  None, errorHandling = None):
     """
 
     osaname = ascript.splitlines()[0]
-    core.logger(traceRaw = u"going to call applescript %s" % (ascript),traceLog = u"going to call applescript %s" % (osaname))
+    core.logger(traceRaw = u'going to call applescript %s' % (ascript),traceLog = u'going to call applescript %s' % (osaname))
 
-    osa = subprocess.Popen(['osascript','-e',ascript],
+    osa = subprocess.Popen([u'osascript','-e',ascript],
                            stdout=subprocess.PIPE,
                            stderr=subprocess.PIPE,
                            close_fds=True)
@@ -64,40 +66,53 @@ def run(ascript, akeys =  None, errorHandling = None):
 
     # error management
     if len(osaerror)>0:
-        osaerror=osaerror[:-1].decode('utf-8')
-        # test if error
+        osaerror2=osaerror[:-1].decode('utf-8')
+        # filter standard errors due to old mac configuration
+        osaerror=u''
+        filterederror=u''
+        for theline in osaerror2.splitlines():
+            if _repCloseAppErrorFilter.search(theline) is None:
+                osaerror = osaerror + theline + u'\n'
+            else:
+                filterederror = filterederror + theline + u'\n'
+        if filterederror>u'':
+            core.logger(traceLog=u'warning: applescript %s error filtered as not significant' % (osaname), traceRaw = u'warning: applescript %s following error filtered: %s' % (osaname, filterederror[:-1]))
+
+    # test if error
+    if len(osaerror)>0:
+        osaerror=osaerror[:-1]
         if errorHandling is None:
-            core.logger(traceLog="no error handling", errLog = u"applescript %s failed because %s" % (osaname, osaerror))
+            core.logger(traceLog=u'no error handling', errLog = u'applescript %s failed because %s' % (osaname, osaerror))
             return None
         else:
-            core.logger(traceLog = u"applescript %s error handling %s because %s" % (osaname, type(errorHandling), osaerror))
+            core.logger(traceLog = u'applescript %s error handling %s because %s' % (osaname, type(errorHandling), osaerror))
             if type(errorHandling) is int:
                 # test if dictionnary exists
                 if osaname in indigo.activePlugin._retryLog:
                     indigo.activePlugin._retryLog[osaname]=indigo.activePlugin._retryLog[osaname]+1
                     if indigo.activePlugin._retryLog[osaname] >= errorHandling:
-                        core.logger(errLog = u"applescript %s failed after %s retry because %s" % (osaname, indigo.activePlugin._retryLog[osaname],osaerror))
+                        core.logger(errLog = u'applescript %s failed after %s retry because %s' % (osaname, indigo.activePlugin._retryLog[osaname],osaerror))
                         return None
                 else:
                     indigo.activePlugin._retryLog[osaname]=1
                 indigo.activePlugin._errorMsg[osaname]= osaerror
-                core.logger(traceLog = u"applescript %s failed %s time" % (osaname, indigo.activePlugin._retryLog[osaname]))
+                core.logger(traceLog = u'applescript %s failed %s time' % (osaname, indigo.activePlugin._retryLog[osaname]))
             else:
                 if errorHandling.search(osaerror) is None:
-                    core.logger(errLog = u"applescript %s failed because %s" % (osaname ,osaerror))
+                    core.logger(errLog = u'applescript %s failed because %s' % (osaname ,osaerror))
                 else:
-                    core.logger(msgLog = u"warning on applescript %s : %s" % (osaname, osaerror), isMain=False)
-            
+                    core.logger(msgLog = u'warning on applescript %s : %s' % (osaname, osaerror), isMain=False)
+
             # continue the process with a dummy value
-            osavalues="\n"
+            osavalues=u'\n'
     else:
         # a success sets the # retries to 0
         if type(errorHandling) is int:
             if osaname in indigo.activePlugin._retryLog:
                 if (indigo.activePlugin._retryLog[osaname]>0) and (indigo.activePlugin._retryLog[osaname]<errorHandling):
-                    core.logger(msgLog = u"warning on applescript %s : %s" % (osaname, indigo.activePlugin._errorMsg[osaname]), isMain=False)
+                    core.logger(msgLog = u'warning on applescript %s : %s' % (osaname, indigo.activePlugin._errorMsg[osaname]), isMain=False)
                 indigo.activePlugin._retryLog[osaname]=0
-                indigo.activePlugin._errorMsg[osaname]=""
+                indigo.activePlugin._errorMsg[osaname]=u''
 
     # return value without error
     if akeys is None:
@@ -105,10 +120,12 @@ def run(ascript, akeys =  None, errorHandling = None):
         osavalues = core.strutf8(osavalues[:-1])
     else:
         # return list of values
-        osavalues = dict(zip(akeys,(osavalues[:-1]).split("||")))
+        osavalues = dict(zip(akeys,(osavalues[:-1]).split('||')))
         for thekey,thevalue in osavalues.iteritems():
+            if thevalue in _valueConvertDict:
+                thevalue = _valueConvertDict[thevalue]
             osavalues[thekey] = core.strutf8(thevalue)
 
-    core.logger(traceRaw = u"returned from applescript: %s" % (osavalues),traceLog = u"returned from applescript %s" % (osaname))
+    core.logger(traceRaw = u'returned from applescript: %s' % (osavalues),traceLog = u'returned from applescript %s' % (osaname))
 
     return osavalues

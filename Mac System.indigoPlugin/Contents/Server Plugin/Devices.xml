@@ -60,8 +60,16 @@
     <Device type="relay" id="bip.ms.application">
         <Name>Application</Name>
         <ConfigUI>
+            <Field id="labeltext" type="label">
+                <Label>This type of device is mainly dedicated to usual MacOS X applications, i.e.: softwares with a .app extension, mainly installed in the Applications folder.</Label>
+            </Field>
+            <Field id="simpleSeparatorText" type="separator"/>
             <Field id="ApplicationID" type="textfield">
-                <Label>Application name:</Label>
+                <Label>Application name (without .app extension):</Label>
+            </Field>
+            <Field type="checkbox" id="closeWindows">
+                <Label>Close windows after launch:</Label>
+                <Description>(does not stop the application)</Description>
             </Field>
             <Field type="checkbox" id="forceQuit">
                 <Label>Use forced quit:</Label>
@@ -69,12 +77,45 @@
             </Field>
             <Field id="simpleSeparator1" type="separator"/>
             <Field type="checkbox" id="nameSpecial">
-                <Label>Use special full name:</Label>
-                <Description>(extension is not .app)</Description>
+                <Label>Use special path:</Label>
             </Field>
-            <Field id="ApplicationPathName" type="textfield" enabledBindingId="nameSpecial">
+            <Field id="nameSpecialLabel" type="label" visibleBindingId="nameSpecial" visibleBindingValue="false">
+                <Label>Use this if application is not inside Applications folder</Label>
+            </Field>
+            <Field id="directoryPath" type="textfield" visibleBindingId="nameSpecial" visibleBindingValue="true" default="/Application">
+                <Label>Application directory path (not terminated by /):</Label>
+            </Field>
+            <Field id="ApplicationPathName" type="textfield" hidden="true">
                 <Label>Application path and name:</Label>
-                <Description>(filled automatically if not special full name)</Description>
+            </Field>
+            <Field id="ApplicationStopPathName" type="textfield" hidden="true">
+                <Label>Appllication stop command:</Label>
+            </Field>
+            <Field id="ApplicationStartPathName" type="textfield" hidden="true">
+                <Label>Application start command:</Label>
+            </Field>
+           <Field id="simpleSeparator2" type="separator"/>
+            <Field type="checkbox" id="processSpecial">
+                <Label>Use special process name:</Label>
+            </Field>
+            <Field id="processSpecialLabel" type="label" visibleBindingId="processSpecial" visibleBindingValue="false">
+                <Label>Use this if the process name is not the same than the Application Name</Label>
+            </Field>
+            <Field id="ApplicationProcessName" type="textfield" visibleBindingId="processSpecial" visibleBindingValue="true">
+                <Label>Process name:</Label>
+            </Field>
+            <Field id="simpleSeparator3" type="separator"/>
+            <Field type="checkbox" id="windowcloseSpecial">
+                <Label>Use special window close command:</Label>
+            </Field>
+            <Field id="windowcloseSpecialLabel" type="label" visibleBindingId="windowcloseSpecial" visibleBindingValue="false">
+                <Label>Use this if the default close windows action is not working</Label>
+            </Field>
+            <Field id="windowcloseScript" type="textfield" visibleBindingId="windowcloseSpecial" visibleBindingValue="true">
+                <Label>Close window process:</Label>
+            </Field>
+            <Field id="nothingLabel" type="label">
+                <Label></Label>
             </Field>
         </ConfigUI>
         <States>
@@ -127,4 +168,188 @@
             </State>
         </States>
      </Device>
+    <Device type="relay" id="bip.ms.helper">
+        <Name>Helper application</Name>
+        <ConfigUI>
+            <Field id="labelText" type="label">
+                <Label>This type of device is mainly dedicated to helper applications. These applications are often launched when you open your session. They are not located in the Applications folder but behave in some way as an application. You can start and stop them using the device if needed.</Label>
+            </Field>
+            <Field id="simpleSeparatorText" type="separator"/>
+            <Field id="ApplicationID" type="textfield">
+                <Label>Helper name (without .app extension):</Label>
+            </Field>
+            <Field id="directoryPath" type="textfield">
+                <Label>Helper directory path (not terminated by /):</Label>
+            </Field>
+            <Field id="nameSpecial" type="checkbox" hidden="true" defaultValue="true" >
+                <Label>Use special path:</Label>
+            </Field>
+            <Field id="closeWindows" type="checkbox" defaultValue="false" hidden="true" >
+                <Label>Close windows after launch:</Label>
+            </Field>
+            <Field id="ApplicationPathName" type="textfield" hidden="true">
+                <Label>Helper path and name:</Label>
+            </Field>
+            <Field id="ApplicationStopPathName" type="textfield" hidden="true">
+                <Label>Helper stop command:</Label>
+            </Field>
+            <Field id="ApplicationStartPathName" type="textfield" hidden="true">
+                <Label>Helper start command:</Label>
+            </Field>
+           <Field id="ApplicationProcessName" type="textfield" hidden="true">
+                <Label>Process name:</Label>
+            </Field>
+            <Field id="forceQuit" type="checkbox"  defaultValue="true" hidden="true" >
+                <Label>Use forced quit:</Label>
+            </Field>
+        </ConfigUI>
+        <States>
+            <!-- By default relay type devices automatically inherit the
+             state: onOffState.
+             -->
+            <State id="PStatus">
+                <ValueType>
+                    <List>
+                        <Option value="idle">Idle</Option>
+                        <Option value="running">Running</Option>
+                        <Option value="stopped">Stopped</Option>
+                        <Option value="waiting">Waiting</Option>
+                        <Option value="zombie">Zombie</Option>
+                        <Option value="off">Off</Option>
+                    </List>
+                </ValueType>
+                <TriggerLabel>Process Status</TriggerLabel>
+                <ControlPageLabel>Process Status</ControlPageLabel>
+            </State>
+            <State id="ProcessID">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Process ID</TriggerLabel>
+                <ControlPageLabel>Process ID</ControlPageLabel>
+            </State>
+            <State id="LStart">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last start time</TriggerLabel>
+                <ControlPageLabel>Last start time</ControlPageLabel>
+            </State>
+            <State id="ETime">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Elapsed running time</TriggerLabel>
+                <ControlPageLabel>Elapsed running time</ControlPageLabel>
+            </State>
+            <State id="PStatus">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Process Status</TriggerLabel>
+                <ControlPageLabel>Process Status</ControlPageLabel>
+            </State>
+            <State id="PCpu">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Percentage CPU usage</TriggerLabel>
+                <ControlPageLabel>Percentage CPU usage</ControlPageLabel>
+            </State>
+            <State id="PMem">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Percentage memory usage</TriggerLabel>
+                <ControlPageLabel>Percentage memory usage</ControlPageLabel>
+            </State>
+        </States>
+    </Device>
+    <Device type="relay" id="bip.ms.daemon">
+        <Name>Daemon</Name>
+        <ConfigUI>
+            <Field id="labelText" type="label">
+                <Label>This type of device is mainly dedicated to daemon processes. These processes are often launched when you open your session. They are not located in the Applications folder and do not behave as an application. You can stop them using the device but it is not guaranteed that you can start them.</Label>
+            </Field>
+            <Field id="simpleSeparatorText" type="separator"/>
+            <Field id="ApplicationID" type="textfield">
+                <Label>Daemon process name:</Label>
+            </Field>
+            <Field id="labelFullPath" type="label">
+                <Label>The following value is the full path and name of the daemon manager that needs to be called to start and stop the daemon</Label>
+            </Field>
+            <Field id="ApplicationPathName" type="textfield">
+                <Label>Deamon full path and name:</Label>
+            </Field>
+            <Field id="nameSpecial" type="checkbox" hidden="true" defaultValue="true" >
+                <Label>Use special path:</Label>
+            </Field>
+            <Field id="closeWindows" type="checkbox" hidden="true" defaultValue="false">
+                <Label>Close windows after launch:</Label>
+            </Field>
+            <Field id="ApplicationStartArgumentLabel" type="label">
+                <Label>
+The "Daemon start command arguments" are used to ask to the daemon manager to start it. It allows the "On" command of the device to work. Leaving it empty will prevent the "On" command working."</Label>
+            </Field>
+            <Field id="ApplicationStartArgument" type="textfield">
+                <Label>Daemon start command arguments:</Label>
+            </Field>
+            <Field id="ApplicationStopArgumentLabel" type="label">
+                <Label>
+The "Daemon stop command arguments" are used to ask to the daemon manager to gently stop it. Leaving it empty will do a forced quit on "Off" command.</Label>
+            </Field>
+            <Field id="ApplicationStopArgument" type="textfield">
+                <Label>Daemon stop command arguments:</Label>
+            </Field>
+           <Field id="forceQuit" type="checkbox" defaultValue="false" hidden="true">
+                <Label>Use forced quit:</Label>
+            </Field>
+            <Field id="ApplicationProcessName" type="textfield" hidden="true">
+                <Label>Process name:</Label>
+            </Field>
+            <Field id="ApplicationStopPathName" type="textfield" hidden="true">
+                <Label>Helper stop command:</Label>
+            </Field>
+            <Field id="ApplicationStartPathName" type="textfield" hidden="true">
+                <Label>Helper start command:</Label>
+            </Field>
+        </ConfigUI>
+        <States>
+            <!-- By default relay type devices automatically inherit the
+             state: onOffState.
+             -->
+            <State id="PStatus">
+                <ValueType>
+                    <List>
+                        <Option value="idle">Idle</Option>
+                        <Option value="running">Running</Option>
+                        <Option value="stopped">Stopped</Option>
+                        <Option value="waiting">Waiting</Option>
+                        <Option value="zombie">Zombie</Option>
+                        <Option value="off">Off</Option>
+                    </List>
+                </ValueType>
+                <TriggerLabel>Process Status</TriggerLabel>
+                <ControlPageLabel>Process Status</ControlPageLabel>
+            </State>
+            <State id="ProcessID">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Process ID</TriggerLabel>
+                <ControlPageLabel>Process ID</ControlPageLabel>
+            </State>
+            <State id="LStart">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last start time</TriggerLabel>
+                <ControlPageLabel>Last start time</ControlPageLabel>
+            </State>
+            <State id="ETime">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Elapsed running time</TriggerLabel>
+                <ControlPageLabel>Elapsed running time</ControlPageLabel>
+            </State>
+            <State id="PStatus">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Process Status</TriggerLabel>
+                <ControlPageLabel>Process Status</ControlPageLabel>
+            </State>
+            <State id="PCpu">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Percentage CPU usage</TriggerLabel>
+                <ControlPageLabel>Percentage CPU usage</ControlPageLabel>
+            </State>
+            <State id="PMem">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Percentage memory usage</TriggerLabel>
+                <ControlPageLabel>Percentage memory usage</ControlPageLabel>
+            </State>
+        </States>
+    </Device>
 </Devices>

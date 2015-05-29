@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<Actions>
+    <SupportURL>http://forums.indigodomo.com/viewtopic.php?f=162&amp;t=13678</SupportURL>
+    <Action id="closeWindows" deviceFilter="self.bip.ms.application">
+        <Name>Close application windows</Name>
+        <CallbackMethod>closewindowsCBM</CallbackMethod>
+    </Action>
+</Actions>

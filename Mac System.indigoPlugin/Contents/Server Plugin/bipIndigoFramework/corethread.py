@@ -40,7 +40,7 @@ def setUpdateRequest(thedevice, nbTime=1):
         thedevice: current device
     """
 
-    core.logger(traceLog = u"Device \"%s\" has %s update requests stacked" % (thedevice.name,nbTime))
+    core.logger(traceLog = u'Device "%s" has %s update requests stacked' % (thedevice.name,nbTime))
     indigo.activePlugin._requestedUpdate[thedevice.id]=nbTime
 
 
@@ -57,7 +57,7 @@ def isUpdateRequested(thedevice):
     if thedevice.id in indigo.activePlugin._requestedUpdate:
         if indigo.activePlugin._requestedUpdate[thedevice.id]>0:
             indigo.activePlugin._requestedUpdate[thedevice.id] = indigo.activePlugin._requestedUpdate[thedevice.id]-1
-            core.logger(traceLog = u"Device \"%s\" is going to process an update request" % (thedevice.name))
+            core.logger(traceLog = u'Device "%s" is going to process an update request' % (thedevice.name))
             return True
 
     return False
@@ -77,7 +77,7 @@ def sleepNext(thetime):
     if nextdelay < 1:
         nextdelay = 0.5
 
-    core.logger(traceLog = u"going to sleep for %s seconds" % (nextdelay))
+    core.logger(traceLog = u'going to sleep for %s seconds' % (nextdelay))
     indigo.activePlugin.sleep(nextdelay)
 
 
@@ -107,15 +107,15 @@ class dialogTimer(object):
         self.initialinterval = initialinterval
         self.interval   = interval
         self.timeEllapsed = True
-        core.logger(traceLog = u"initiating dialog timer \"%s\" on a %s seconds pace" % (self.timername, interval))
+        core.logger(traceLog = u'initiating dialog timer "%s" on a %s seconds pace' % (self.timername, interval))
         self._run()
 
     def __del__(self):
-        core.logger(traceLog = u"deleting dialog timer \"%s\"" % (self.timername))
+        core.logger(traceLog = u'deleting dialog timer "%s"' % (self.timername))
         self._timer.cancel()
     
     def _run(self):
-        core.logger(traceLog = u"time ellapsed for dialog timer \"%s\"" % (self.timername))
+        core.logger(traceLog = u'time ellapsed for dialog timer "%s"' % (self.timername))
         self.timeEllapsed = True
         if self.initialinterval>0:
             self._timer = Timer(self.initialinterval, self._run)
@@ -131,14 +131,14 @@ class dialogTimer(object):
             interval: interval in seconds
         """
         self.interval = interval
-        core.logger(traceLog = u"restarting with new timing value %s for dialog timer \"%s\"" % (interval, self.timername))
+        core.logger(traceLog = u'restarting with new timing value %s for dialog timer "%s"' % (interval, self.timername))
         self._timer.cancel()
         self._run()
 
     def doNow(self):
         """ Stop the current timing and set isTime to true
         """
-        core.logger(traceLog = u"forced time ellapsed for dialog timer \"%s\"" % (self.timername))
+        core.logger(traceLog = u'forced time ellapsed for dialog timer "%s"' % (self.timername))
         self._timer.cancel()
         self._run()
 

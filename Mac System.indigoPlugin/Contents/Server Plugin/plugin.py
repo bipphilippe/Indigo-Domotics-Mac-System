@@ -59,6 +59,17 @@
     Rev 1.2.2 : Volume device with special characters - 29 april 2005
                 Some bugs corrections, including:
                  - Error on volume with special characters as '
+    Rev 2.0.0 : Complex application and deamon version - 27 mai 2015
+                Enhancements:
+                 - new devices: Helpers and Daemons
+                 - new action: close application windows
+                 - new turn-on property: auto-close application windows
+                 - auto-add of missing device parameters and states when upgrading
+                 - better respect of properties and states data types
+                Some bugs corrections, including:
+                 - Applescript library error filter
+                 - error message after install
+
 """
 ####################################################################################
 
@@ -75,10 +86,6 @@ import pipes
 
 # Note the "indigo" module is automatically imported and made available inside
 # our global name space by the host process.
-
-
-_repCloseAppError = re.compile(r"Error loading .Library.ScriptingAdditions")
-
 
 ################################################################################
 class Plugin(indigo.PluginBase):
@@ -100,101 +107,118 @@ class Plugin(indigo.PluginBase):
         # first read debug flags - before any logging
         core.debugFlags(self.pluginPrefs)
         # startup call
-        core.logger(traceLog = u"startup called")
+        core.logger(traceLog = u'startup called')
         interface.init()
         corethread.init()
-        core.logger(traceLog = u"end of startup")
+        core.dumppluginproperties()
+
+        core.logger(traceLog = u'end of startup')
 
     def shutdown(self):
-        core.logger(traceLog = u"shutdown called")
+        core.logger(traceLog = u'shutdown called')
+        core.dumppluginproperties()
         # do some cleanup here
-        core.logger(traceLog = u"end of shutdown")
+        core.logger(traceLog = u'end of shutdown')
 
 
     ######################
     def deviceStartComm(self, dev):
-        core.logger(traceLog = u"deviceStartComm called for: %s (%d - %s)" % (dev.name, dev.id, dev.deviceTypeId))
-        core.logger(traceLog = u"end of deviceStartComm")
+        core.logger(traceLog = u'"%s" deviceStartComm called (%d - %s)' % (dev.name, dev.id, dev.deviceTypeId))
+        core.dumpdeviceproperties(dev)
+        core.dumpdevicestates(dev)
+                
+        # upgrade version if needed
+        if dev.deviceTypeId == u'bip.ms.application':
+            core.upgradeDeviceProperties(dev,
+                        {u'closeWindows':False,
+                        u'processSpecial':False,
+                        u'ApplicationProcessName':dev.pluginProps[u'ApplicationID'],
+                        u'windowcloseSpecial':False,
+                        u'directoryPath':(dev.pluginProps[u'ApplicationPathName'])[:-5-len(dev.pluginProps[u'ApplicationID'])],
+                        u'windowcloseScript':u'Tell application "' + dev.pluginProps[u'ApplicationID'] + u'" to close every window',
+                        u'ApplicationStopPathName':u'tell application "'+ dev.pluginProps[u'ApplicationID'] + u'" to quit',
+                        u'ApplicationStartPathName':u'open ' + pipes.quote(dev.pluginProps[u'ApplicationPathName'])})
+
+        core.logger(traceLog = (u'end of "%s" deviceStartComm'  % (dev.name)))
 
     def deviceStopComm(self, dev):
-        core.logger(traceLog = u"deviceStopComm called: %s (%d - %s)" % (dev.name, dev.id, dev.deviceTypeId))
-        core.logger(traceLog = u"end of deviceStopComm")
-
-    ######################
-    #def triggerStartProcessing(self, trigger):
-    #    core.logger(traceLog = u"triggerStartProcessing called for: %s (%d)" % (trigger.name, trigger.id))
-    #
-    #    core.logger(traceLog = u"end of triggerStartProcessing")
-
-    # def triggerStopProcessing(self, trigger):
-    #    core.logger(traceLog = u"triggerStopProcessing called for: %s (%d)" % (trigger.name, trigger.id))
-    #
-    #    core.logger(traceLog = u"end of triggerStopProcessing")
+        core.logger(traceLog = u'deviceStopComm called: %s (%d - %s)' % (dev.name, dev.id, dev.deviceTypeId))
+        core.dumpdeviceproperties(dev)
+        core.dumpdevicestates(dev)
+        core.logger(traceLog = u'end of "%s" deviceStopComm'  % (dev.name))
 
 
     ########################################
     # Update thread
     ########################################
     def runConcurrentThread(self):
-        core.logger(traceLog = u"runConcurrentThread initiated")
+        core.logger(traceLog = u'runConcurrentThread initiated')
 
         # init spinner timer
-        psvalue= int(self.pluginPrefs['disksleepTime'])
+        try:
+            psvalue= int(self.pluginPrefs[u'disksleepTime'])
+        except:
+            psvalue=0
+        
         if psvalue>0:
             psvalue = (psvalue-1)*60
         else:
             psvalue=600
-        nextDiskSpin = corethread.dialogTimer("Next disk spin",psvalue)
-        
+        nextDiskSpin = corethread.dialogTimer(u'Next disk spin',psvalue)
+
         # init full data read timer for volumes
-        readVolumeData = corethread.dialogTimer("Read volume data",60)
+        readVolumeData = corethread.dialogTimer(u'Read volume data',60)
 
         # init full data read timer for applications
-        readApplicationData = corethread.dialogTimer("Read application data",60,30)
+        readApplicationData = corethread.dialogTimer(u'Read application data',60,30)
 
         # loop
         try:
             while True:
                 corethread.sleepWake()
-  
+
                 # Test if time to spin
                 timeToSpin = nextDiskSpin.isTime()
                 if timeToSpin:
                     # get disk sleep value
-                    psvalue = shellscript.run(u"pmset -g | grep disksleep | sed -e s/[a-z]//g",u"sed -e 's/ //g'")
+                    psvalue = shellscript.run(u"pmset -g | grep disksleep | sed -e s/[a-z]//g | sed -e 's/ //g'")
                     try:
                         psvalue = int(psvalue)
                     except:
                         psvalue=0
                     # set property and timer if needed
-                    theupdatesDict = core.updatepluginprops({'disksleepTime':psvalue})
+                    theupdatesDict = core.updatepluginprops({u'disksleepTime':psvalue})
                     if (len(theupdatesDict)>0):
                         if psvalue>0:
                             nextDiskSpin.changeInterval((psvalue-1)*60)
                         else:
                             nextDiskSpin.changeInterval(600)
-        
+
                 # test if time to read full data
                 timeToReadVolumeData = readVolumeData.isTime()
                 timeToReadApplicationData = readApplicationData.isTime()
-                
-                for thedevice in indigo.devices.iter("self"):
+
+                for thedevice in indigo.devices.iter(u'self'):
                     thevaluesDict = {}
 
                     ##########
                     # Application device
                     ########################
-                    if (thedevice.deviceTypeId =="bip.ms.application") and thedevice.configured and thedevice.enabled:
+                    if (thedevice.deviceTypeId in (u'bip.ms.application',u'bip.ms.helper',u'bip.ms.daemon')) and thedevice.configured and thedevice.enabled:
                         # states
                         (success,thevaluesDict) = interface.getProcessStatus(thedevice, thevaluesDict)
                         # update
                         theupdatesDict = core.updatestates(thedevice, thevaluesDict)
                         # special images
-                        core.specialimage(thedevice, "PStatus", theupdatesDict, {"idle":indigo.kStateImageSel.AvPaused,"waiting":indigo.kStateImageSel.AvPaused,"stopped":indigo.kStateImageSel.AvStopped,"zombie":indigo.kStateImageSel.SensorTripped})
-                        
+                        core.specialimage(thedevice, u'PStatus', theupdatesDict, {u'idle':indigo.kStateImageSel.AvPaused,u'waiting':indigo.kStateImageSel.AvPaused,u'stopped':indigo.kStateImageSel.AvStopped,u'zombie':indigo.kStateImageSel.SensorTripped})
+
                         # do we need to read full data ?
-                        if ('onOffState' in theupdatesDict):
+                        if (u'onOffState' in theupdatesDict):
+                            # update to get more correct data
                             corethread.setUpdateRequest(thedevice)
+                            # close windows if required
+                            if (thedevice.pluginProps[u'closeWindows']==True) and (theupdatesDict[u'onOffState']==True):
+                                self.closeWindowAction(thedevice)
 
                         if timeToReadApplicationData or corethread.isUpdateRequested(thedevice):
                             (success,thevaluesDict) = interface.getProcessData(thedevice, thevaluesDict)
@@ -203,7 +227,7 @@ class Plugin(indigo.PluginBase):
                     ##########
                     # Volume device
                     ########################
-                    elif (thedevice.deviceTypeId =="bip.ms.volume") and thedevice.configured and thedevice.enabled:
+                    elif (thedevice.deviceTypeId ==u'bip.ms.volume') and thedevice.configured and thedevice.enabled:
                          # states
                         (success,thevaluesDict) = interface.getVolumeStatus(thedevice, thevaluesDict)
                         # spin if needed
@@ -212,21 +236,21 @@ class Plugin(indigo.PluginBase):
                         # update
                         theupdatesDict = core.updatestates(thedevice, thevaluesDict)
                         # special images
-                        core.specialimage(thedevice, "VStatus", theupdatesDict, {"notmounted":indigo.kStateImageSel.AvStopped})
+                        core.specialimage(thedevice, u'VStatus', theupdatesDict, {u'notmounted':indigo.kStateImageSel.AvStopped})
 
                         # do we need to read full data ?
-                        if ('onOffState' in theupdatesDict):
+                        if (u'onOffState' in theupdatesDict):
                             corethread.setUpdateRequest(thedevice,3)
-                        
+
                         if timeToReadVolumeData or corethread.isUpdateRequested(thedevice):
                             (success,thevaluesDict) = interface.getVolumeData(thedevice, thevaluesDict)
                             core.updatestates(thedevice, thevaluesDict)
-        
+
                 # wait
                 corethread.sleepNext(10) # in seconds
         except self.StopThread:
             # do any cleanup here
-            core.logger(traceLog = u"end of runConcurrentThread")
+            core.logger(traceLog = u'end of runConcurrentThread')
 
     ########################################
     # Relay / Dimmer Action callback
@@ -238,7 +262,7 @@ class Plugin(indigo.PluginBase):
         if theactionid is None:
             # no action to do
             return
-        
+
         if theactionid == indigo.kDeviceGeneralAction.RequestStatus:
             corethread.setUpdateRequest(dev)
             return
@@ -246,36 +270,48 @@ class Plugin(indigo.PluginBase):
         ##########
         # Application device
         ########################
-        if (dev.deviceTypeId =="bip.ms.application"):
+        if (dev.deviceTypeId in (u'bip.ms.application',u'bip.ms.helper',u'bip.ms.daemon')):
             if (theactionid == indigo.kDimmerRelayAction.TurnOn):
-                shellscript.run(u"open %s" % (pipes.quote(dev.pluginProps['ApplicationPathName'])))
+                shellscript.run(dev.pluginProps[u'ApplicationStartPathName'])
                 # status update will be done by runConcurrentThread
 
             elif (theactionid == indigo.kDimmerRelayAction.TurnOff):
-                if dev.pluginProps['forceQuit']:
-                    shellscript.run(u"kill %s" % (dev.states['ProcessID']))
+                if dev.pluginProps[u'forceQuit']:
+                    shellscript.run(u"kill %s" % (dev.states[u'ProcessID']))
                     # status update will be done by runConcurrentThread
                 else:
                     osascript.run(u'''(* Tell to quit *)
-                        tell application "%s" to quit''' % (dev.pluginProps['ApplicationID']), errorHandling = _repCloseAppError )
+                        %s''' % (dev.pluginProps[u'ApplicationStopPathName']))
                     # status update will be done by runConcurrentThread
 
         ##########
         # Volume device
         ########################
-        elif (dev.deviceTypeId =="bip.ms.volume"):
-            if (theactionid == indigo.kDimmerRelayAction.TurnOn) and (dev.states['VStatus']=="notmounted"):
-                shellscript.run(u"/usr/sbin/diskutil mount %s" % (dev.states['VolumeDevice']))
+        elif (dev.deviceTypeId ==u'bip.ms.volume'):
+            if (theactionid == indigo.kDimmerRelayAction.TurnOn) and (dev.states[u'VStatus']==u'notmounted'):
+                shellscript.run(u"/usr/sbin/diskutil mount %s" % (dev.states[u'VolumeDevice']))
             # status update will be done by runConcurrentThread
-            
+
             elif (theactionid == indigo.kDimmerRelayAction.TurnOff):
-                if dev.pluginProps['forceQuit']:
-                    shellscript.run(u"/usr/sbin/diskutil umount force %s" % (dev.states['VolumeDevice']))
+                if dev.pluginProps[u'forceQuit']:
+                    shellscript.run(u"/usr/sbin/diskutil umount force %s" % (dev.states[u'VolumeDevice']))
                     # status update will be done by runConcurrentThread
                 else:
-                    shellscript.run(u"/usr/sbin/diskutil umount %s" % (dev.states['VolumeDevice']))
+                    shellscript.run(u"/usr/sbin/diskutil umount %s" % (dev.states[u'VolumeDevice']))
                     # status update will be done by runConcurrentThread
 
+
+    ########################################
+    # other callbacks
+    ######################
+    def closewindowsCBM(self,theaction):
+        self.closeWindowAction(indigo.devices[theaction.deviceId])
+
+
+    def closeWindowAction(self, thedevice):
+        core.logger(traceLog = u'requesting device "%s" action %s' % (thedevice.name,u'closewindows'))
+        osascript.run(u'''(* Tell to close window *)
+            %s''' % (thedevice.pluginProps[u'windowcloseScript']))
 
     ########################################
     # Prefs UI methods (works with PluginConfig.xml):
@@ -285,25 +321,58 @@ class Plugin(indigo.PluginBase):
     # Returns False on failure, True on success
     #
     def validatePrefsConfigUi(self, valuesDict):
-        core.logger(traceLog = u"validating Prefs called")
+        core.logger(traceLog = u'validating Prefs called')
 
         errorMsgDict = indigo.Dict()
         err = False
 
         # manage debug flag
-        core.debugFlags(valuesDict)
+        valuesDict = core.debugFlags(valuesDict)
 
-        core.logger(traceLog = u"end of validating Prefs")
+        core.logger(traceLog = u'end of validating Prefs')
         return (True, valuesDict)
 
 
     def validateDeviceConfigUi(self, valuesDict, typeId, devId):
-        core.logger(traceLog = (u"validating Device Config called for:    (%d - %s)") % ( devId, typeId))
+        core.logger(traceLog = (u'validating Device Config called for: (%d - %s)') % (devId, typeId))
+        core.dumpdict(valuesDict,u'input value dict %s is %s', level=core.MSG_STATES_DEBUG)
+ 
+        # applications and helpers
+        if typeId in (u'bip.ms.application',u'bip.ms.helper'):
+            if (valuesDict[u'ApplicationID'])[-4:] == u'.app':
+                valuesDict[u'ApplicationID'] = (valuesDict[u'ApplicationID'])[:-4]
 
-        if typeId == "bip.ms.application":
-            if not valuesDict['nameSpecial']:
-                valuesDict['ApplicationPathName'] = '/Applications/' +valuesDict['ApplicationID']+'.app'
+            if not valuesDict[u'nameSpecial']:
+                valuesDict[u'directoryPath'] = u'/Applications'
 
-        core.logger(traceLog = u"end of validating Device Config")
+            if (valuesDict[u'directoryPath'])[-1:] == u'/':
+                valuesDict[u'directoryPath'] = (valuesDict[u'directoryPath'])[:-1]
+            
+            valuesDict[u'ApplicationPathName'] = valuesDict[u'directoryPath'] + u'/' + valuesDict[u'ApplicationID'] + u'.app'
+            valuesDict[u'ApplicationStartPathName'] = u'open %s' % (pipes.quote(valuesDict[u'ApplicationPathName']))
+
+            if typeId in (u'bip.ms.application'):
+                valuesDict[u'ApplicationStopPathName'] = u'tell application "'+ valuesDict[u'ApplicationID'] + u'" to quit'
+                if not valuesDict[u'processSpecial']:
+                    valuesDict[u'ApplicationProcessName'] = valuesDict[u'ApplicationID']
+                if not valuesDict[u'windowcloseSpecial']:
+                    valuesDict[u'windowcloseScript'] = u'tell application "' + valuesDict[u'ApplicationID'] + u'" to close every window'
+
+            if typeId in (u'bip.ms.helper',u'bip.ms.daemon'):
+                valuesDict[u'ApplicationProcessName'] = valuesDict[u'ApplicationID'] + u'(?: -.+)?'
+
+        # daemons
+        if typeId in (u'bip.ms.daemon'):
+            valuesDict[u'ApplicationProcessName'] = valuesDict[u'ApplicationID'] + u'(?: -.+)?'
+            valuesDict[u'ApplicationStartPathName'] = pipes.quote(valuesDict[u'ApplicationPathName']) + u' ' + valuesDict[u'ApplicationStartArgument']
+
+            if len(valuesDict[u'ApplicationStopPathName'])==0:
+                valuesDict[u'forceQuit'] = True
+            else:
+                valuesDict[u'forceQuit'] = False
+                valuesDict[u'ApplicationStopPathName'] = pipes.quote(valuesDict[u'ApplicationPathName']) + u' ' + valuesDict[u'ApplicationStopArgument']
+
+        core.dumpdict(valuesDict,u'output value dict %s is %s', level=core.MSG_STATES_DEBUG)
+        core.logger(traceLog = u'end of validating Device Config')
         return (True, valuesDict)
 
