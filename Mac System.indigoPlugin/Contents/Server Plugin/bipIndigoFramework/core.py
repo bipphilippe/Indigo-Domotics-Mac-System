@@ -327,7 +327,7 @@ def updatepluginprops(thevaluesDict):
             thevalue=thevalue.decode('utf-8')
 
         if theactualvalue != thevalue:
-            logger(traceRaw = u'property %s value: %s != %s' % (thekey, formatdump(indigo.activePlugin.pluginPrefs[thekey],formatdump(thevalue))))
+            logger(traceRaw = u'property %s value: %s != %s' % (thekey, formatdump(indigo.activePlugin.pluginPrefs[thekey]),formatdump(thevalue)))
             indigo.activePlugin.pluginPrefs[thekey] = thevalue
             updateDict[thekey]=thevalue
         else:
