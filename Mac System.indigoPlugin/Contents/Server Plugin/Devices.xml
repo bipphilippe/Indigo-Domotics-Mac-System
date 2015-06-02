@@ -277,7 +277,7 @@
             </Field>
             <Field id="ApplicationStartArgumentLabel" type="label">
                 <Label>
-The "Daemon start command arguments" are used to ask to the daemon manager to start it. It allows the "On" command of the device to work. Leaving it empty will prevent the "On" command working."</Label>
+The "Daemon start command arguments" are used to ask to the daemon manager to start it. It allows the "On" command of the device to work."</Label>
             </Field>
             <Field id="ApplicationStartArgument" type="textfield">
                 <Label>Daemon start command arguments:</Label>

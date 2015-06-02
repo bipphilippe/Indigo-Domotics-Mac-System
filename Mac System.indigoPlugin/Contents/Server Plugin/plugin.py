@@ -59,7 +59,7 @@
     Rev 1.2.2 : Volume device with special characters - 29 april 2005
                 Some bugs corrections, including:
                  - Error on volume with special characters as '
-    Rev 2.0.0 : Complex application and deamon version - 27 mai 2015
+    Rev 2.0.0 : Complex application and deamon version - 27 may 2015
                 Enhancements:
                  - new devices: Helpers and Daemons
                  - new action: close application windows
@@ -69,6 +69,10 @@
                 Some bugs corrections, including:
                  - Applescript library error filter
                  - error message after install
+    Rev 2.0.1 : Deamon bug release - 2 june 2015
+                Some bugs corrections, including:
+                 - daemon start argument is not mandatory
+                 - daemon search in ps command is more accurate
 
 """
 ####################################################################################
@@ -357,13 +361,12 @@ class Plugin(indigo.PluginBase):
                     valuesDict[u'ApplicationProcessName'] = valuesDict[u'ApplicationID']
                 if not valuesDict[u'windowcloseSpecial']:
                     valuesDict[u'windowcloseScript'] = u'tell application "' + valuesDict[u'ApplicationID'] + u'" to close every window'
-
-            if typeId in (u'bip.ms.helper',u'bip.ms.daemon'):
+            elif typeId in (u'bip.ms.helper'):
                 valuesDict[u'ApplicationProcessName'] = valuesDict[u'ApplicationID'] + u'(?: -.+)?'
 
         # daemons
         if typeId in (u'bip.ms.daemon'):
-            valuesDict[u'ApplicationProcessName'] = valuesDict[u'ApplicationID'] + u'(?: -.+)?'
+            valuesDict[u'ApplicationProcessName'] = valuesDict[u'ApplicationID'] + u' +' + valuesDict[u'ApplicationStartArgument']
             valuesDict[u'ApplicationStartPathName'] = pipes.quote(valuesDict[u'ApplicationPathName']) + u' ' + valuesDict[u'ApplicationStartArgument']
 
             if len(valuesDict[u'ApplicationStopPathName'])==0:
